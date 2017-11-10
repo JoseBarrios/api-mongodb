@@ -1,0 +1,32 @@
+{
+  "name": "api-mongodb",
+  "author": "JoseBarrios",
+  "bugs": {
+    "url": "https://github.com/JoseBarrios/api-mongodb/issues"
+  },
+  "dependencies": {
+    "mongodb": "^2.2.28"
+  },
+  "description": "MongoDB API wrapper",
+  "devDependencies": {
+    "mocha": "^3.4.2"
+  },
+  "keywords": [
+    "Mongo",
+    "db",
+    "API",
+    "MongoDB",
+    "js",
+    "npm"
+  ],
+  "license": "UNLICENSED",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JoseBarrios/api-mongodb.git"
+  },
+  "scripts": {
+    "test": "./node_modules/mocha/bin/mocha"
+  },
+  "version": "0.0.1"
+}
