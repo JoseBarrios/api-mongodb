@@ -4,8 +4,6 @@ const MongoClient = require('mongodb').MongoClient;
 const Server = require('mongodb').Server
 const ObjectID = require('mongodb').ObjectID;
 const assert = require('assert');
-const config = require('./config/example.json')
-
 
 
 class MongoAPI {
