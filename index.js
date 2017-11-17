@@ -23,8 +23,6 @@ class MongoAPI {
     _mongo.state.connecting = true;
     _mongo.state.connected = false;
 
-		console.log('IN MONGO', url)
-
     _mongo.connection = () => {
       return new Promise((resolve, reject) => {
       //if already exists
