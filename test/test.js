@@ -1,7 +1,8 @@
 "use strict"
 
+const config = require('../config/example.json');
 const MongoClient = require("../index.js");
-const mongo = new MongoClient('INSERT_MONGO_URL_IN_TEST_FILE');
+const mongo = new MongoClient(config.url);
 const assert = require('assert');
 let tempID = null;
 
