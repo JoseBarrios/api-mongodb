@@ -163,9 +163,11 @@ class MongoAPI {
     }
 
 
+  } //END OF CONSTRUCTOR
 
-  } //END OF CLASS
-
+	get ObjectID(){
+		return ObjectID;
+	}
 
   ///////////////////////////////////////
   //

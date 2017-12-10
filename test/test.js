@@ -2,6 +2,7 @@
 
 const config = require('../config/example.json');
 const MongoClient = require("../index.js");
+const ObjectID = require('mongodb').ObjectID;
 const mongo = new MongoClient(config.url);
 const assert = require('assert');
 let tempID = null;
@@ -9,6 +10,11 @@ let tempID = null;
 describe("Mongo API", function() {
 
   describe("Methods", function() {
+
+    it("ObjectID", function() {
+			assert.deepEqual(mongo.ObjectID, ObjectID)
+    })
+
 
     it("#insertDocument", function(done) {
       let data = {};
@@ -31,7 +37,6 @@ describe("Mongo API", function() {
           done(err)
         })
     })
-
 
     it("#searchCollectionsForDocumentWithID", function(done) {
       mongo.searchCollectionsForDocumentWithID(['x','y','z','people'], tempID)
