@@ -289,7 +289,7 @@ class MongoAPI {
     });
   }
 
-  createCollectionWithUniqueIndices(collectionName, uniqueIndeces){
+  collectionWithUniqueIndices(collectionName, uniqueIndeces){
     return new Promise((resolve, reject) => {
       const unique = true;
       this.createIndex(collectionName, uniqueIndeces, {unique})
@@ -298,7 +298,7 @@ class MongoAPI {
     })
   }
 
-  createCollectionWithTemporaryDocuments(collectionName, timestampKey, durationInSeconds){
+  collectionWithTemporaryDocuments(collectionName, timestampKey, durationInSeconds){
     return new Promise((resolve, reject) => {
       let observable = {};
       observable[timestampKey] = 1;

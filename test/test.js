@@ -60,17 +60,17 @@ describe("Mongo API", function() {
 				.catch(err =>{ done(err) })
 		})
 
-    it("#createCollectionWithUniqueIndices", function(done) {
-      mongo.createCollectionWithUniqueIndices('users', {email: 1})
+    it("#collectionWithUniqueIndices", function(done) {
+      mongo.collectionWithUniqueIndices('users', {email: 1})
         .then(res => { done() })
         .catch(err =>{ done(err) })
     })
 
-    it("#createCollectionWithTemporaryDocuments", function(done) {
+    it("#collectionWithTemporaryDocuments", function(done) {
       const delay = 10;
       const COLLECTION = 'tests.temp'
       const timestampKey = 'dateSent'
-      mongo.createCollectionWithTemporaryDocuments(COLLECTION, timestampKey, delay)
+      mongo.collectionWithTemporaryDocuments(COLLECTION, timestampKey, delay)
         .then(res => {
           let document = {};
           document[timestampKey] = new Date();
