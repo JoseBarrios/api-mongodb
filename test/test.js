@@ -5,7 +5,12 @@ const MongoClient = require("../index.js");
 const ObjectID = require('mongodb').ObjectID;
 const mongo = new MongoClient(config.url);
 const assert = require('assert');
+const should = require('chai').should();
+const refObjectId = ObjectID();
+
+let secondaryTempID = null;
 let tempID = null;
+
 
 describe("Mongo API", function() {
 
@@ -15,13 +20,13 @@ describe("Mongo API", function() {
 			assert.deepEqual(mongo.ObjectID, ObjectID)
     })
 
-
     it("#insertDocument", function(done) {
       let data = {};
       data.givenName = 'Jose';
       data.familyName = 'Barrios';
       data.email = 'jose@barrios.io';
       data.additionalName = "Luis";
+      data.reference = refObjectId;
       mongo.insertDocument('people', data).then(res => {
         tempID = res._id;
         done()
@@ -36,6 +41,22 @@ describe("Mongo API", function() {
         .catch(err =>{
           done(err)
         })
+    })
+
+    it("#getDocuments", async function() {
+      let data = {};
+      data.givenName = 'Sonia';
+      data.familyName = 'Barrios';
+      data.email = 'sonia@barrios.io';
+      data.reference = refObjectId;
+      mongo.insertDocument('people', data).then(res => {
+        secondaryTempID = res._id;
+        mongo.getDocuments('people', { reference: refObjectId})
+          .then(async cursor => {
+            const users = await cursor.toArray();
+            users.should.have.length(2);
+          })
+      })
     })
 
     it("#searchCollectionsForDocumentWithID", function(done) {
@@ -56,7 +77,10 @@ describe("Mongo API", function() {
 
 		it("#deleteDocument", function(done) {
 			mongo.deleteDocument('people', tempID)
-				.then(res => { done() })
+        .then(res => {
+          mongo.deleteDocument('people', secondaryTempID);
+          done()
+        })
 				.catch(err =>{ done(err) })
 		})
 

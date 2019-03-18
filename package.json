@@ -9,7 +9,8 @@
   },
   "description": "MongoDB API wrapper",
   "devDependencies": {
-    "mocha": "^3.4.2"
+    "chai": "^4.2.0",
+    "mocha": "^6.0.2"
   },
   "keywords": [
     "Mongo",
