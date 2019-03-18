@@ -5,7 +5,7 @@
     "url": "https://github.com/JoseBarrios/api-mongodb/issues"
   },
   "dependencies": {
-    "mongodb": "^2.2.28"
+    "mongodb": "^3.1.13"
   },
   "description": "MongoDB API wrapper",
   "devDependencies": {

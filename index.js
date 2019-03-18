@@ -28,17 +28,20 @@ class MongoAPI {
       //if already exists
         if(_mongo.state.connected){
           //return database
-          resolve(_mongo.db)
+          resolve(_mongo)
         }
         else{
           //Connect and send database
-          MongoClient.connect(url, (err, db) => {
+          const client = new MongoClient(url, { useNewUrlParser: true })
+          client.connect(function(err){
             assert.ifError(err);
+            const db = client.db();
             _mongo.state.connecting = false;
             _mongo.state.connected = true;
             _mongo.db = db;
-            resolve(_mongo.db);
-          });
+            _mongo.client = client;
+            resolve(_mongo);
+          })
         }
       })
     }
@@ -47,8 +50,8 @@ class MongoAPI {
     this.close = () => {
       return new Promise((resolve, reject)=>{
         if(_mongo.state.connected){
-          _mongo.connection().then(db => {
-            db.close();
+          _mongo.connection().then(m => {
+            m.client.close();
             _mongo.state.connected = false;
             _mongo.state.connecting = false;
             resolve(true)
@@ -81,8 +84,8 @@ class MongoAPI {
     //Inserts one, or multiple documents to a collection
     this.insertOne = (collectionName, document, options) => {
       return new Promise((resolve, reject) => {
-        _mongo.connection().then(db => {
-          const collection = db.collection(collectionName)
+        _mongo.connection().then(m => {
+          const collection = m.db.collection(collectionName)
           collection.insertOne(document, options, function(err, result){
             if(err){ reject(err); }
             else{
@@ -97,8 +100,8 @@ class MongoAPI {
     //Selects documents in a collection and returns a cursor to the selected documents.
     this.find = (collectionName, query, projection) => {
       return new Promise((resolve, reject) => {
-        _mongo.connection().then(db => {
-          const collection = db.collection(collectionName)
+        _mongo.connection().then(m => {
+          const collection = m.db.collection(collectionName)
           collection.find(query, projection, function(err, result){
             if(err){ reject(err) }
             else{ resolve(result) }
@@ -110,8 +113,8 @@ class MongoAPI {
     //Returns the first document that satisfies the specified query criteria
     this.findOne = (collectionName, query, projection) => {
       return new Promise((resolve, reject) =>{
-        _mongo.connection().then(db => {
-          const collection = db.collection(collectionName)
+        _mongo.connection().then(m => {
+          const collection = m.db.collection(collectionName)
           collection.findOne(query, projection, function(err, result){
             if(err){ reject(err)}
             else if(!result) {
@@ -128,8 +131,8 @@ class MongoAPI {
     //Updates a single document based on the filter and sort criteria.
     this.findOneAndUpdate = (collectionName, filter, update, options) => {
       return new Promise((resolve, reject) =>{
-        _mongo.connection().then(db => {
-          const collection = db.collection(collectionName)
+        _mongo.connection().then(m => {
+          const collection = m.db.collection(collectionName)
           collection.findOneAndUpdate(filter, update, options, function(err,res){
             if(err){ reject(err)}
             else { resolve(res) }
@@ -141,8 +144,8 @@ class MongoAPI {
     //Finds the first document that matches the filter, deletes it.
     this.findOneAndDelete = (collectionName, filter, options) => {
       return new Promise((resolve, reject) =>{
-        _mongo.connection().then(db => {
-          const collection = db.collection(collectionName);
+        _mongo.connection().then(m => {
+          const collection = m.db.collection(collectionName);
           collection.findOneAndDelete(filter, options, function(err, res){
             if(err){ reject(err)}
             else{ resolve(res)}
@@ -151,10 +154,22 @@ class MongoAPI {
       })
     }
 
+    this.aggregate = (collectionName, pipeline, options) => {
+      return new Promise((resolve, reject) => {
+        _mongo.connection().then(m => {
+          const collection = m.db.collection(collectionName);
+          collection.aggregate(pipeline, function(err, result){
+            if(err){ reject(err) }
+            else{ resolve(result) }
+          })
+        })
+      })
+    }
+
     this.createIndex = (collectionName, keys, options) => {
       return new Promise((resolve, reject) =>{
-        _mongo.connection().then(db => {
-          const collection = db.collection(collectionName);
+        _mongo.connection().then(m => {
+          const collection = m.db.collection(collectionName);
           collection.createIndex(keys, options)
             .then(resolve)
             .catch(reject)
@@ -242,7 +257,8 @@ class MongoAPI {
     return new Promise((resolve, reject) => {
       let _id = ObjectID(documentID);
       let filter = {_id};
-      this.findOneAndUpdate(collectionName, filter, updates, options)
+      let atomic = { "$set" : updates };
+      this.findOneAndUpdate(collectionName, filter, atomic, options)
         .then(resolve)
         .catch(reject)
     });

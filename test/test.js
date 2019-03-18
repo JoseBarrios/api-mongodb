@@ -5,6 +5,8 @@ const MongoClient = require("../index.js");
 const ObjectID = require('mongodb').ObjectID;
 const mongo = new MongoClient(config.url);
 const assert = require('assert');
+const chai = require('chai');
+const expect = chai.expect;
 const should = require('chai').should();
 const refObjectId = ObjectID();
 
@@ -30,6 +32,12 @@ describe("Mongo API", function() {
       mongo.insertDocument('people', data).then(res => {
         tempID = res._id;
         done()
+
+        let address = {};
+        address.street = "Main st";
+        address._id = refObjectId;
+        mongo.insertDocument("address", address);
+
       }).catch(err =>{ done(err) })
     })
 
@@ -58,6 +66,32 @@ describe("Mongo API", function() {
           })
       })
     })
+
+    it("#aggregate", function(done) {
+
+      const lookup = {
+        "$lookup": {
+          from: "address",
+          localField: "reference",
+          foreignField: "_id",
+          as: "address"
+        }
+      };
+
+      const pipeline = [];
+      pipeline.push(lookup);
+
+      mongo.aggregate("people", pipeline)
+        .then(async res => {
+          const people = await res.toArray();
+          people.forEach( person => {
+            expect(person.address[0]).to.have.property('street', "Main st");
+          })
+          done()
+        })
+        .catch(err =>{ done(err) })
+    })
+
 
     it("#searchCollectionsForDocumentWithID", function(done) {
       mongo.searchCollectionsForDocumentWithID(['x','y','z','people'], tempID)
