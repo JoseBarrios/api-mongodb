@@ -1,6 +1,6 @@
 "use strict"
 
-const config = require('../config.json');
+const config = require('../config/example.json');
 const MongoClient = require("../index.js");
 const ObjectID = require('mongodb').ObjectID;
 const mongo = new MongoClient(config.url);
