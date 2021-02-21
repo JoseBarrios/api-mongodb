@@ -1,6 +1,6 @@
 "use strict"
 
-const config = require('../config/example.json');
+const config = require('../config.json');
 const MongoClient = require("../index.js");
 const ObjectID = require('mongodb').ObjectID;
 const mongo = new MongoClient(config.url);
@@ -15,6 +15,7 @@ let tempID = null;
 
 
 describe("Mongo API", function() {
+  this.timeout(5000);
 
   describe("Methods", function() {
 

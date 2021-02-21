@@ -5,12 +5,12 @@
     "url": "https://github.com/JoseBarrios/api-mongodb/issues"
   },
   "dependencies": {
-    "mongodb": "^3.1.13"
+    "mongodb": "^3.6.4"
   },
   "description": "MongoDB API wrapper",
   "devDependencies": {
     "chai": "^4.2.0",
-    "mocha": "^6.0.2"
+    "mocha": "^8.3.0"
   },
   "keywords": [
     "Mongo",
@@ -29,5 +29,5 @@
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha"
   },
-  "version": "0.1.2"
+  "version": "0.1.3"
 }

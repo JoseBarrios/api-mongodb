@@ -1,23 +1,20 @@
-'use strict'
+"use strict";
 
-const MongoClient = require('mongodb').MongoClient;
-const Server = require('mongodb').Server
-const ObjectID = require('mongodb').ObjectID;
-const assert = require('assert');
-
+const MongoClient = require("mongodb").MongoClient;
+const Server = require("mongodb").Server;
+const ObjectID = require("mongodb").ObjectID;
+const assert = require("assert");
 
 class MongoAPI {
-
-  static ObjectID(id){
+  static ObjectID(id) {
     return ObjectID(id);
   }
 
-  static isObjectID(id){
+  static isObjectID(id) {
     return ObjectID.isValid(id);
   }
 
   constructor(url) {
-
     const _mongo = {};
     _mongo.state = {};
     _mongo.state.connecting = true;
@@ -25,15 +22,17 @@ class MongoAPI {
 
     _mongo.connection = () => {
       return new Promise((resolve, reject) => {
-      //if already exists
-        if(_mongo.state.connected){
+        //if already exists
+        if (_mongo.state.connected) {
           //return database
-          resolve(_mongo)
-        }
-        else{
+          resolve(_mongo);
+        } else {
+          const options = {}
+          options.useNewUrlParser = true;
+          options.useUnifiedTopology = true;
           //Connect and send database
-          const client = new MongoClient(url, { useNewUrlParser: true })
-          client.connect(function(err){
+          const client = new MongoClient(url, options);
+          client.connect(function (err) {
             assert.ifError(err);
             const db = client.db();
             _mongo.state.connecting = false;
@@ -41,38 +40,42 @@ class MongoAPI {
             _mongo.db = db;
             _mongo.client = client;
             resolve(_mongo);
-          })
+          });
         }
-      })
-    }
+      });
+    };
 
     //PRIVATE CONNECTION
     this.close = () => {
-      return new Promise((resolve, reject)=>{
-        if(_mongo.state.connected){
-          _mongo.connection().then(m => {
-            m.client.close();
-            _mongo.state.connected = false;
-            _mongo.state.connecting = false;
-            resolve(true)
-          }).catch(reject)
-        } else { resolve(true) }
-      })
-    }
+      return new Promise((resolve, reject) => {
+        if (_mongo.state.connected) {
+          _mongo
+            .connection()
+            .then((m) => {
+              m.client.close();
+              _mongo.state.connected = false;
+              _mongo.state.connecting = false;
+              resolve(true);
+            })
+            .catch(reject);
+        } else {
+          resolve(true);
+        }
+      });
+    };
 
     // Attach _mongo props to this
     _mongo.properties = new Map();
     _mongo.properties.set(this, _mongo);
 
-
     // Priviledged method
     this.state = {};
     this.state.connecting = () => {
       return _mongo.properties.get(this).connecting;
-    }
+    };
     this.state.connected = () => {
       return _mongo.properties.get(this).connected;
-    }
+    };
 
     ///////////////////////////////////////////////////////
     //
@@ -80,109 +83,125 @@ class MongoAPI {
     //
     ///////////////////////////////////////////////////////
 
-
     //Inserts one, or multiple documents to a collection
     this.insertOne = (collectionName, document, options) => {
       return new Promise((resolve, reject) => {
-        _mongo.connection().then(m => {
-          const collection = m.db.collection(collectionName)
-          collection.insertOne(document, options, function(err, result){
-            if(err){ reject(err); }
-            else{
+        _mongo.connection().then((m) => {
+          const collection = m.db.collection(collectionName);
+          collection.insertOne(document, options, function (err, result) {
+            if (err) {
+              reject(err);
+            } else {
               let response = result.ops[0];
-              resolve(response)
+              resolve(response);
             }
-          })
-        })
-      })
-    }
+          });
+        });
+      });
+    };
 
     //Selects documents in a collection and returns a cursor to the selected documents.
     this.find = (collectionName, query, projection) => {
       return new Promise((resolve, reject) => {
-        _mongo.connection().then(m => {
-          const collection = m.db.collection(collectionName)
-          collection.find(query, projection, function(err, result){
-            if(err){ reject(err) }
-            else{ resolve(result) }
-          })
-        })
-      })
-    }
+        _mongo.connection().then((m) => {
+          const collection = m.db.collection(collectionName);
+          collection.find(query, projection, function (err, result) {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          });
+        });
+      });
+    };
 
     //Returns the first document that satisfies the specified query criteria
     this.findOne = (collectionName, query, projection) => {
-      return new Promise((resolve, reject) =>{
-        _mongo.connection().then(m => {
-          const collection = m.db.collection(collectionName)
-          collection.findOne(query, projection, function(err, result){
-            if(err){ reject(err)}
-            else if(!result) {
-              let msg = `Query into '${collectionName}' collection returned no documents: ${JSON.stringify(query)}`;
-              reject(new Error(msg))
-            } else{
-              resolve(result)
+      return new Promise((resolve, reject) => {
+        _mongo.connection().then((m) => {
+          const collection = m.db.collection(collectionName);
+          collection.findOne(query, projection, function (err, result) {
+            if (err) {
+              reject(err);
+            } else if (!result) {
+              let msg = `Query into '${collectionName}' collection returned no documents: ${JSON.stringify(
+                query
+              )}`;
+              reject(new Error(msg));
+            } else {
+              resolve(result);
             }
-          })
+          });
         });
-      })
-    }
+      });
+    };
 
     //Updates a single document based on the filter and sort criteria.
     this.findOneAndUpdate = (collectionName, filter, update, options) => {
-      return new Promise((resolve, reject) =>{
-        _mongo.connection().then(m => {
-          const collection = m.db.collection(collectionName)
-          collection.findOneAndUpdate(filter, update, options, function(err,res){
-            if(err){ reject(err)}
-            else { resolve(res) }
-          })
+      return new Promise((resolve, reject) => {
+        _mongo.connection().then((m) => {
+          const collection = m.db.collection(collectionName);
+          collection.findOneAndUpdate(
+            filter,
+            update,
+            options,
+            function (err, res) {
+              if (err) {
+                reject(err);
+              } else {
+                resolve(res);
+              }
+            }
+          );
         });
-      })
-    }
+      });
+    };
 
     //Finds the first document that matches the filter, deletes it.
     this.findOneAndDelete = (collectionName, filter, options) => {
-      return new Promise((resolve, reject) =>{
-        _mongo.connection().then(m => {
+      return new Promise((resolve, reject) => {
+        _mongo.connection().then((m) => {
           const collection = m.db.collection(collectionName);
-          collection.findOneAndDelete(filter, options, function(err, res){
-            if(err){ reject(err)}
-            else{ resolve(res)}
-          })
+          collection.findOneAndDelete(filter, options, function (err, res) {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(res);
+            }
+          });
         });
-      })
-    }
+      });
+    };
 
     this.aggregate = (collectionName, pipeline, options) => {
       return new Promise((resolve, reject) => {
-        _mongo.connection().then(m => {
+        _mongo.connection().then((m) => {
           const collection = m.db.collection(collectionName);
-          collection.aggregate(pipeline, function(err, result){
-            if(err){ reject(err) }
-            else{ resolve(result) }
-          })
-        })
-      })
-    }
+          collection.aggregate(pipeline, function (err, result) {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          });
+        });
+      });
+    };
 
     this.createIndex = (collectionName, keys, options) => {
-      return new Promise((resolve, reject) =>{
-        _mongo.connection().then(m => {
+      return new Promise((resolve, reject) => {
+        _mongo.connection().then((m) => {
           const collection = m.db.collection(collectionName);
-          collection.createIndex(keys, options)
-            .then(resolve)
-            .catch(reject)
+          collection.createIndex(keys, options).then(resolve).catch(reject);
         });
-      })
-    }
-
-
+      });
+    };
   } //END OF CONSTRUCTOR
 
-	get ObjectID(){
-		return ObjectID;
-	}
+  get ObjectID() {
+    return ObjectID;
+  }
 
   ///////////////////////////////////////
   //
@@ -191,18 +210,18 @@ class MongoAPI {
   //////////////////////////////////////
 
   //Inserts a document, returns its _id
-  insertDocument(collectionName, document, options){
+  insertDocument(collectionName, document, options) {
     return new Promise((resolve, reject) => {
       this.insertOne(collectionName, document, options)
-        .then(result => {
-          resolve(result)
+        .then((result) => {
+          resolve(result);
         })
         .catch(reject);
     });
   }
 
   //Returns first document that match query
-  getDocument(collectionName, query, projection){
+  getDocument(collectionName, query, projection) {
     return new Promise((resolve, reject) => {
       this.findOne(collectionName, query, projection)
         .then(resolve)
@@ -211,69 +230,71 @@ class MongoAPI {
   }
 
   //Returns ALL documents that match query
-  getDocuments(collectionName, query, projection){
+  getDocuments(collectionName, query, projection) {
     return new Promise((resolve, reject) => {
-      this.find(collectionName, query, projection)
-        .then(resolve)
-        .catch(reject);
+      this.find(collectionName, query, projection).then(resolve).catch(reject);
     });
   }
 
   //Finds document with matching ID
-  getDocumentByID(collectionName, documentID, projection){
+  getDocumentByID(collectionName, documentID, projection) {
     return new Promise((resolve, reject) => {
       let _id = ObjectID(documentID);
-      let query = {_id};
+      let query = { _id };
       this.findOne(collectionName, query, projection)
         .then(resolve)
         .catch(reject);
-      });
+    });
   }
 
-  getDocumentsByID(queries){
+  getDocumentsByID(queries) {
     return new Promise((resolve, reject) => {
       let promises = [];
-      queries.forEach(query => {
+      queries.forEach((query) => {
         var collection = query.collection;
         var id = query.id;
         var promise = new Promise((resolve, reject) => {
           this.getDocumentByID(collection, id).then(resolve).catch(resolve);
+        });
+        promises.push(promise);
+      });
+      return Promise.all(promises)
+        .then((results) => {
+          let response = {};
+          response.errors = [];
+          results.forEach((result) => {
+            if (result._id) {
+              response[result._id] = result;
+            } else {
+              response.errors.push(result);
+            }
+          });
+          resolve(response);
         })
-        promises.push(promise)
-      })
-      return Promise.all(promises).then(results => {
-        let response = {};
-        response.errors = [];
-        results.forEach(result => {
-          if(result._id){ response[result._id] = result; }
-          else { response.errors.push(result) }
-        })
-        resolve(response)
-      }).catch(reject)
+        .catch(reject);
     });
   }
 
-  updateDocument(collectionName, documentID, updates, options){
+  updateDocument(collectionName, documentID, updates, options) {
     return new Promise((resolve, reject) => {
       let _id = ObjectID(documentID);
-      let filter = {_id};
-      let atomic = { "$set" : updates };
+      let filter = { _id };
+      let atomic = { $set: updates };
       this.findOneAndUpdate(collectionName, filter, atomic, options)
         .then(resolve)
-        .catch(reject)
+        .catch(reject);
     });
   }
 
-  deleteDocument(collectionName, documentID, options){
+  deleteDocument(collectionName, documentID, options) {
     return new Promise((resolve, reject) => {
       let filter = {};
       filter._id = ObjectID(documentID);
       this.findOneAndDelete(collectionName, filter, options)
         .then(resolve)
-        .catch(reject)
+        .catch(reject);
     });
   }
-
 
   ///////////////////////////////////
   //
@@ -281,52 +302,58 @@ class MongoAPI {
   //
   /////////////////////////////////
 
-  searchCollectionsForDocumentWithID(collections, documentID){
+  searchCollectionsForDocumentWithID(collections, documentID) {
     return new Promise((resolve, reject) => {
       let numCollections = collections.length;
       let numResponses = 0;
-      collections.forEach(collection => {
+      collections.forEach((collection) => {
         this.getDocumentByID(collection, documentID)
-          .then(result =>{
+          .then((result) => {
             numResponses++;
             resolve(result);
-          })//ERRORS:
-          .catch(error => {
+          }) //ERRORS:
+          .catch((error) => {
             numResponses++;
             //That was the last possible collection
             //Where the document could be, return error
-            if(numResponses === numCollections){
+            if (numResponses === numCollections) {
               let msg = `Document ${documentID} not found in collections: ${collections}`;
               let error = new Error(msg);
-              reject(error)
+              reject(error);
             }
-          })
-      })
+          });
+      });
     });
   }
 
-  collectionWithUniqueIndices(collectionName, uniqueIndeces){
+  collectionWithUniqueIndices(collectionName, uniqueIndeces) {
     return new Promise((resolve, reject) => {
       const unique = true;
-      this.createIndex(collectionName, uniqueIndeces, {unique})
+      this.createIndex(collectionName, uniqueIndeces, { unique })
         .then(resolve)
-        .catch(reject)
-    })
+        .catch(reject);
+    });
   }
 
-  collectionWithTemporaryDocuments(collectionName, timestampKey, durationInSeconds){
+  collectionWithTemporaryDocuments(
+    collectionName,
+    timestampKey,
+    durationInSeconds
+  ) {
     return new Promise((resolve, reject) => {
       let observable = {};
       observable[timestampKey] = 1;
       let duration = {};
-      duration.expireAfterSeconds = durationInSeconds
+      duration.expireAfterSeconds = durationInSeconds;
       this.createIndex(collectionName, observable, duration)
         .then(resolve)
-        .catch(reject)
-    })
+        .catch(reject);
+    });
   }
 
-  disconnect(){ return this.close(); }
+  disconnect() {
+    return this.close();
+  }
 }
 
 module.exports = MongoAPI;
